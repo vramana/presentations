@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 
 const speed_factor = 10;
 
@@ -28,33 +28,89 @@ function formatTime(t) {
 }
 
 export default function MusicPlayer() {
-  const [play, setPlay] = useState(false);
+  const [state, dispatch] = useReducer(
+    function(state, action) {
+      const { play, songIndex, currentTime } = state;
+      const song = songs[songIndex];
+      switch (action.type) {
+        case 'PLAYING':
+          if (currentTime + speed_factor < song.time) {
+            return {
+              ...state,
+              currentTime: currentTime + speed_factor
+            };
+          } else {
+            return {
+              ...state,
+              songIndex: (songIndex + 1) % songs.length,
+              currentTime: 0
+            };
+          }
 
-  const [currentTime, setCurrentTime] = useState(0);
-  const [songIndex, setSongIndex] = useState(0);
+        case 'PREV':
+          return {
+            ...state,
+            songIndex: (songIndex - 1 + songs.length) % songs.length,
+            currentTime: 0
+          };
+        case 'NEXT':
+          return {
+            ...state,
+            songIndex: (songIndex - 1 + songs.length) % songs.length,
+            currentTime: 0
+          };
+
+        case 'TOGGLE_PLAY': {
+          return {
+            ...state,
+            play: !play
+          };
+        }
+
+        default:
+          return state;
+      }
+    },
+    {
+      play: false,
+      songIndex: 0,
+      currentTime: 0
+    }
+  );
+
+  const { play, songIndex, currentTime } = state;
+
   const song = songs[songIndex];
 
   const [invertedTime, setInvertedTime] = useState(false);
 
-  useEffect(() => {
-    if (play) {
-      setTimeout(() => {
-        if (currentTime + speed_factor < song.time) {
-          setCurrentTime(currentTime + speed_factor);
-        } else {
-          // Order is important
-          setCurrentTime(0);
-          setSongIndex((songIndex + 1) % songs.length);
+  useEffect(
+    () => {
+      let timeout;
+      if (play) {
+        timeout = setTimeout(() => {
+          if (currentTime + speed_factor < song.time) {
+            dispatch({ type: 'PLAYING' });
+          } else {
+            dispatch({ type: 'NEXT' });
+          }
+        }, 1000);
+      }
+
+      return () => {
+        if (timeout) {
+          clearTimeout(timeout);
         }
-      }, 1000);
-    }
-  }, [currentTime, songIndex, song.time, play]);
+      };
+    },
+    [currentTime, songIndex, song.time, play]
+  );
 
   return (
     <div class="music-player">
       <div class="play">
         <div>
-          <button onClick={() => setPlay(!play)}>
+          <button onClick={() => dispatch({ type: 'TOGGLE_PLAY' })}>
             {!play ? (
               <i class="material-icons m_icons">play_arrow</i>
             ) : (
@@ -81,10 +137,24 @@ export default function MusicPlayer() {
           <i class="material-icons m_icons">shuffle</i>
         </button>
         <button>
-          <i class="material-icons m_icons">skip_previous</i>
+          <i
+            class="material-icons m_icons"
+            onClick={() => {
+              dispatch({ type: 'PREV' });
+            }}
+          >
+            skip_previous
+          </i>
         </button>
         <button>
-          <i class="material-icons m_icons">skip_next</i>
+          <i
+            class="material-icons m_icons"
+            onClick={() => {
+              dispatch({ type: 'NEXT' });
+            }}
+          >
+            skip_next
+          </i>
         </button>
       </div>
     </div>
