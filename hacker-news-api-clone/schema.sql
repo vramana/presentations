@@ -1,0 +1,32 @@
+CREATE TABLE users(
+  id BIGSERIAL NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+);
+
+CREATE TABLE posts(
+  id BIGSERIAL NOT NULL PRIMARY KEY,
+  url TEXT NOT NULL,
+  domain TEXT NOT NULL,
+  title TEXT NOT NULL,
+  user_id BIGINT REFERENCES users(id),
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+);
+
+CREATE TABLE comments(
+  id BIGSERIAL NOT NULL PRIMARY KEY,
+  body TEXT NOT NULL,
+  post_id BIGINT REFERENCES posts(id),
+  user_id BIGINT REFERENCES users(id),
+  parent_id BIGINT NOT NULL,
+  FOREIGN KEY (parent_id) REFERENCES comments(id),
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+);
+
+
