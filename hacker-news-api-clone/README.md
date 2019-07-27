@@ -1,12 +1,12 @@
 ### Endpoints
 
+- /posts/:id
+
 - /posts
 
 - /posts?user_id
 
 - /posts?domain
-
-- /posts/:id
 
 - /comments?post_id
 

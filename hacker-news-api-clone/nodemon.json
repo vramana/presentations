@@ -1,0 +1,7 @@
+{
+	"signal": "SIGTERM",
+	"ext": "go",
+	"execMap": {
+    	"go": "go run ."
+  	}	
+}
